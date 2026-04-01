@@ -40,7 +40,6 @@ def load_json(filename):
     except:
         return {}
 
-
 def create_cache(dictionary, filename):
     """
     Converts a Python dictionary into JSON and writes it to filename (overwrites the
@@ -53,8 +52,8 @@ def create_cache(dictionary, filename):
     RETURNS:
         None
     """
-    pass
-
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(dictionary, f)
 
 def search_breed(breed_id):
     """
