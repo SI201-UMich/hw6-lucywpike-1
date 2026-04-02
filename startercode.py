@@ -208,8 +208,42 @@ def get_groups_above_cutoff(cutoff, cache_file):
     RETURNS:
         A dictionary {group_uuid: count} for groups with count >= cutoff only.
     """
-    pass
+    cache = load_json(cache_file)
+    if not isinstance(cache, dict):
+        return {}
 
+    group_counts = {}
+    for entry in cache.values():
+        if not isinstance(entry, dict):
+            continue
+
+        data = entry.get("data")
+        if not isinstance(data, dict):
+            continue
+
+        relationships = data.get("relationships")
+        if not isinstance(relationships, dict):
+            continue
+
+        group = relationships.get("group")
+        if not isinstance(group, dict):
+            continue
+
+        group_data = group.get("data")
+        if not isinstance(group_data, dict):
+            continue
+
+        group_id = group_data.get("id")
+        if not isinstance(group_id, str) or not group_id:
+            continue
+
+        group_counts[group_id] = group_counts.get(group_id, 0) + 1
+
+    result = {}
+    for gid, count in group_counts.items():
+        if count >= cutoff:
+            result[gid] = count
+    return result
 
 # Extra Credit
 def recommend_breeds_in_same_group(breed_name, cache_file):
