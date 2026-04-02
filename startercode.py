@@ -266,7 +266,56 @@ def recommend_breeds_in_same_group(breed_name, cache_file):
             "No group information available for '{breed_name}'."  (no group id)
             "No recommendations found based on '{breed_name}'."  (no other breeds in that group)
     """
+    cache = load_json(cache_file)
+    if not isinstance(cache, dict) or not cache:
+        return "No breed data found in cache."
 
+    target_breed = None
+    for entry in cache.values():
+        if not isinstance(entry, dict):
+            continue
+
+        data = entry.get("data")
+        if not isinstance(data, dict):
+            continue
+
+        attributes = data.get("attributes")
+        if not isinstance(attributes, dict):
+            continue
+
+        name = attributes.get("name")
+        if not isinstance(name, str) or not name:
+            continue
+
+        if name.lower() == breed_name.lower():
+            target_breed = entry
+            break
+
+    if target_breed is None:
+        return f"'{breed_name}' is not in the cache."
+
+    relationships = target_breed.get("data", {}).get("relationships", {})
+    group_id = relationships.get("group", {}).get("data", {}).get("id")
+    if not isinstance(group_id, str) or not group_id:
+        return f"No group information available for '{breed_name}'."
+
+    recommendations = []
+    for entry in cache.values():
+        if entry == target_breed:
+            continue
+
+        data = entry.get("data", {})
+        rels = data.get("relationships", {})
+        gid = rels.get("group", {}).get("data", {}).get("id")
+        if gid == group_id:
+            name = data.get("attributes", {}).get("name")
+            if isinstance(name, str) and name:
+                recommendations.append(name)
+
+    if not recommendations:
+        return f"No recommendations found based on '{breed_name}'."
+
+    return sorted(recommendations)
 
 class TestHomeworkDogAPI(unittest.TestCase):
     def setUp(self):
